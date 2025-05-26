@@ -6,4 +6,7 @@ set(CMAKE_CXX_STANDARD 20)
 add_executable(
         algorithm_analysis_homework2
         src/main.cpp
-        )
+        src/EditDistance.h
+        src/EditDistanceRecursive.h
+        src/EditDistanceDP.h
+)
