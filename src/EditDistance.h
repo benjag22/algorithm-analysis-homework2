@@ -21,7 +21,7 @@ public:
     virtual int Delete(int m, int n) = 0;
 
     virtual int Replace(int m, int n) = 0;
-
+    virtual int CalculateDistante() = 0;
     string getS() const { return S; }
     string getT() const { return T; }
 

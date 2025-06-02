@@ -9,4 +9,7 @@ add_executable(
         src/EditDistance.h
         src/EditDistanceRecursive.h
         src/EditDistanceDP.h
+        src/TextExtractor.h
+        src/PerformanceMeter.h
+        src/ExperimentRunner.h
 )

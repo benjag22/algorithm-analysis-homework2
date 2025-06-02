@@ -8,13 +8,16 @@
 using namespace std;
 
 class EditDistanceRecursive : EditDistance {
+private:
+    mutable int callCount = 0;
 
 public:
     EditDistanceRecursive(const string &S, const string &T) : EditDistance(S, T) {
+        callCount = 0;
     }
 
     int calculate(int m, int n) override {
-
+        callCount++;
         string s = getS();
         string t = getT();
 
@@ -43,7 +46,11 @@ public:
         return calculate(m - 1, n - 1);
     }
 
-    int CalculateDistante() {
+    int CalculateDistante() override{
+        callCount = 0;
         return calculate(getS().length(), getT().length());
+    }
+    int getCallCount() const {
+        return callCount;
     }
 };

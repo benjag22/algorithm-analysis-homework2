@@ -2,3 +2,4 @@
 .venv/
 cmake-build-*/
 build/
+src/data
