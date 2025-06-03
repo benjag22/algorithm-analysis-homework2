@@ -6,16 +6,22 @@
 #include "EditDistance.h"
 
 using namespace std;
-
+/*
+ * Tiempo: O(3^(s.length() + t.length()))
+ * espacio: O(s.length() + t.length())
+ *
+ */
 class EditDistanceRecursive : EditDistance {
 private:
-    mutable int callCount = 0;
+    int callCount = 0;
 
 public:
     EditDistanceRecursive(const string &S, const string &T) : EditDistance(S, T) {
         callCount = 0;
     }
-
+    /*
+     * Por cada posicion (n,m) realizar hasta 3 llamadas recursivas adicionalesen el peor caso.
+     */
     int calculate(int m, int n) override {
         callCount++;
         string s = getS();
@@ -30,7 +36,7 @@ public:
         }
 
 
-        return 1 + min({Insert(m, n), Delete(m, n), Replace(m, n)});
+        return 1 + min({calculate(m, n - 1), calculate(m - 1, n), calculate(m - 1, n - 1)});
 
     }
 

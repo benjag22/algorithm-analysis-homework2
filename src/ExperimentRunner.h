@@ -25,26 +25,43 @@ public:
         results.resize(4, vector<vector<PerformanceMeter::Result>>(4, vector<PerformanceMeter::Result>(4)));
     }
 
-    void runAllTests() {
-        cout << "\n=== Ejecutando pruebas para todas las implementaciones ===" << endl;
+    void runAllTests(){
+        run12TestForRecursiveDP();
+        run12TestForRecursive();
+    }
 
+    void run12TestForRecursiveDP() {
+        cout << "\n=== Ejecutando 12 pruebas para la version recursiva con DP ===" << endl;
+        int count = 0;
         for (int i = 0; i < texts.size(); i++) {
 
             for (int j = 0; j < texts.size(); j++) {
                 if (i != j) {
-
-                    runTestCase(i, j);
-                    cout << "xd"<< endl;
+                    runTestRecursiveDP(i, j);
                 }
             }
         }
     }
 
-    void runTestCase(int sourceIdx, int targetIdx) {
+    void run12TestForRecursive() {
+        cout << "\n=== Ejecutando pruebas para la version recursiva normal ===" << endl;
+        for (int i = 0; i < texts.size(); i++) {
+
+            for (int j = 0; j < texts.size(); j++) {
+                if (i != j) {
+                    runTestRecursive(i, j);
+                }
+            }
+        }
+    }
+
+    void runTestRecursive(int sourceIdx, int targetIdx) {
+
+        // Algoritmo 3.A: Recursivo
+
         const string& source = texts[sourceIdx];
         const string& target = texts[targetIdx];
 
-        // Algoritmo 3.A: DP
         EditDistanceRecursive recursive(source, target);
 
         results[sourceIdx][targetIdx][0] = PerformanceMeter::measure<EditDistanceRecursive>(recursive,[](const EditDistanceRecursive& alg) {return alg.getCallCount() * 64;});
@@ -52,22 +69,23 @@ public:
         cout << "  Recursivo: Distancia = " << results[sourceIdx][targetIdx][0].distance
              << ", Tiempo = " << results[sourceIdx][targetIdx][0].timeMs << "ms"
              << ", Memoria ≈ " << results[sourceIdx][targetIdx][0].memoryBytes << " bytes" << endl;
-
-
-
+    }
+    void runTestRecursiveDP(int sourceIdx, int targetIdx) {
         // Algoritmo 3.C: DP
+
+        const string& source = texts[sourceIdx];
+        const string& target = texts[targetIdx];
+
         EditDistanceDP dp(source, target);
         results[sourceIdx][targetIdx][2] = PerformanceMeter::measure<EditDistanceDP>(dp,
-                [](const EditDistanceDP& alg) {
-                    return alg.getDPSize() * sizeof(int);
-                }
+                                                                                     [](const EditDistanceDP& alg) {
+                                                                                         return alg.getDPSize() * sizeof(int);
+                                                                                     }
         );
 
         cout << "  DP: Distancia = " << results[sourceIdx][targetIdx][2].distance
              << ", Tiempo = " << results[sourceIdx][targetIdx][2].timeMs << "ms"
              << ", Memoria ≈ " << results[sourceIdx][targetIdx][2].memoryBytes << " bytes" << endl;
-
-
     }
 };
 
