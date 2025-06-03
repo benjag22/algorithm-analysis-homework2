@@ -20,7 +20,7 @@ public:
         Result result;
 
         auto start = chrono::high_resolution_clock::now();
-        result.distance = algorithm.CalculateDistante();
+        result.distance = algorithm.CalculateDistance();
         auto end = chrono::high_resolution_clock::now();
 
         result.timeMs = chrono::duration_cast<chrono::milliseconds>(end - start).count();

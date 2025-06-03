@@ -26,7 +26,7 @@ public:
         if (n == 0) return m;
 
         if (s[m - 1] == t[n - 1]) {
-            return Replace(m, n);
+            return calculate(m - 1, n - 1);
         }
 
 
@@ -46,7 +46,7 @@ public:
         return calculate(m - 1, n - 1);
     }
 
-    int CalculateDistante() override{
+    int CalculateDistance() override{
         callCount = 0;
         return calculate(getS().length(), getT().length());
     }

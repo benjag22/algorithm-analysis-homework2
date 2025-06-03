@@ -63,7 +63,7 @@ public:
         return calculate(m - 1, n - 1);
     }
 
-    int CalculateDistante() override {
+    int CalculateDistance() override {
         return calculate(getS().length(), getT().length());
     }
     size_t getDPSize() const {

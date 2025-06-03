@@ -44,7 +44,6 @@ public:
         }
 
         file.close();
-        cout<<result<<endl;
         return result;
     }
 
@@ -53,7 +52,6 @@ public:
         vector<string> texts;
         for (int i = 0; i < numExtracts; i++) {
             int start = startLine + i * (linesPerExtract + 10);
-            cout<<start<<endl;
             string text = extractLinesFromFile(filePath, start, start + linesPerExtract - 1);
             if (!text.empty()) {
                 texts.push_back(text);
