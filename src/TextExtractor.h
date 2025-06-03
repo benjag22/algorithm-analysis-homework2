@@ -51,7 +51,7 @@ public:
                                                int linesPerExtract, int numExtracts) {
         vector<string> texts;
         for (int i = 0; i < numExtracts; i++) {
-            int start = startLine + i * (linesPerExtract + 10);
+            int start = startLine + i * (linesPerExtract);
             string text = extractLinesFromFile(filePath, start, start + linesPerExtract - 1);
             if (!text.empty()) {
                 texts.push_back(text);
