@@ -23,7 +23,7 @@ class ExperimentRunner {
 
 public:
     ExperimentRunner(const std::string &file_path, const int start_line, const int lines_per_extract)
-        : m_texts(TextExtractor::extract_multiple_texts(file_path, start_line, lines_per_extract, 4)) {}
+        : m_texts(TextExtractor(file_path).extract_multiple_texts(start_line, lines_per_extract, 4)) {}
 
     void run_all_tests() {
         // run_tests<EditDistanceRecursive>("Recursive", 0);

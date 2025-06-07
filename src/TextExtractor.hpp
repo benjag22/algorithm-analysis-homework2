@@ -6,18 +6,33 @@
 #include <vector>
 
 class TextExtractor {
+    static constexpr int MAX_LINES = 50'000;
+    std::ifstream m_file;
+
 public:
-    static std::vector<std::string> extract_multiple_texts(
-        const std::string &file_path,
+    explicit TextExtractor(const std::string &file_path) : m_file(file_path) {
+        if (!m_file.is_open()) {
+            std::cerr << "Error: Could not open file: " << file_path << std::endl;
+            std::exit(EXIT_FAILURE);
+        }
+    }
+
+    ~TextExtractor() = default;
+
+    std::vector<std::string> extract_multiple_texts(
         const int start_line,
         const int lines_per_extract,
         const int num_extracts
     ) {
+        m_file.seekg(0, std::ios::beg);
+        int current_line = 1;
+
         std::vector<std::string> texts;
 
         for (int i = 0; i < num_extracts; i++) {
             const int start = start_line + i * lines_per_extract;
-            std::string text = extract_lines_from_file(file_path, start, start + lines_per_extract - 1);
+            const int end = start + lines_per_extract - 1;
+            const std::string &text = extract_lines_from_file(current_line, start, end);
 
             if (!text.empty()) {
                 texts.push_back(text);
@@ -28,27 +43,17 @@ public:
     }
 
 private:
-    static std::string extract_lines_from_file(const std::string &file_path, const int start_line, const int end_line) {
+    std::string extract_lines_from_file(int &current_line, const int start_line, const int end_line) {
         if (end_line < start_line || start_line <= 0) {
             std::cerr << "Error: Invalid lines range (" << start_line << "-" << end_line << ")" << std::endl;
-            return "";
-        }
-
-        std::ifstream file(file_path);
-        if (!file.is_open()) {
-            std::cerr << "Error: Could not open file: " << file_path << std::endl;
-            return "";
+            std::exit(EXIT_FAILURE);
         }
 
         std::string result;
         std::string line;
-        int current_line = 0;
-        constexpr int MAX_LINES = 50'000;
 
-        while (getline(file, line) && current_line < MAX_LINES) {
-            current_line++;
-
-            if (current_line >= start_line && current_line <= end_line) {
+        while (current_line <= end_line && current_line < MAX_LINES && std::getline(m_file, line)) {
+            if (current_line >= start_line) {
                 result += line;
 
                 if (current_line < end_line) {
@@ -56,12 +61,9 @@ private:
                 }
             }
 
-            if (current_line > end_line) {
-                break;
-            }
+            current_line++;
         }
 
-        file.close();
         return result;
     }
 };

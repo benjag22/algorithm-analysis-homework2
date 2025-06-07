@@ -34,23 +34,25 @@ private:
     int calculate(const int m, const int n) override { // NOLINT(*-no-recursion)
         m_call_count++;
 
-        if (m_table[m][n] != -1) {
-            return m_table[m][n];
+        int &value = m_table[m][n];
+
+        if (value != -1) {
+            return value;
         }
 
         if (m == 0) {
-            return m_table[m][n] = n;
+            return value = n;
         }
 
         if (n == 0) {
-            return m_table[m][n] = m;
+            return value = m;
         }
 
         if (m_s1[m - 1] == m_s2[n - 1]) {
-            return m_table[m][n] = calculate(m - 1, n - 1);
+            return value = calculate(m - 1, n - 1);
         }
 
-        return m_table[m][n] = 1 + std::min(Insert(m, n), Delete(m, n));
+        return value = 1 + std::min(Insert(m, n), Delete(m, n));
     }
 
     int Insert(const int m, const int n) override { // NOLINT(*-no-recursion)
