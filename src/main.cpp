@@ -1,9 +1,7 @@
-#include <iostream>
-#include "ExperimentRunner.h"
-using namespace std;
+#include "ExperimentRunner.hpp"
 
 int main() {
-    ExperimentRunner runTest("src/data/pg76210.txt", 1, 100);
-    runTest.runAllTests();
+    ExperimentRunner run_test("data/pg76210.txt", 1, 100);
+    run_test.run_all_tests();
     return 0;
 }
