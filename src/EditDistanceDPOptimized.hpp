@@ -7,50 +7,51 @@
 #include "EditDistance.hpp"
 
 class EditDistanceDPOptimized final : public EditDistance {
+    std::vector<int> m_prev;
+    std::vector<int> m_curr;
+
 public:
-    EditDistanceDPOptimized(const std::string &s1, const std::string &s2) : EditDistance(s1, s2) {}
+    EditDistanceDPOptimized(const std::string &s1, const std::string &s2)
+        : EditDistance(s1, s2),
+          m_prev(s2.length() + 1, 0),
+          m_curr(s2.length() + 1, 0) {}
 
-    [[nodiscard]] int calculate_iterative() const {
-        const int m = m_s1.length();
-        const int n = m_s2.length();
+    int calculate_distance() override {
+        return calculate(m_s1.length(), m_s2.length());
+    }
 
-        std::vector prev(n + 1, 0);
-        std::vector curr(n + 1, 0);
+    [[nodiscard]] uint64_t calculate_memory() const override {
+        return m_prev.size() * sizeof(int) + m_curr.size() * sizeof(int);
+    }
 
+private:
+    int calculate(const int m, const int n) override {
         for (int j = 0; j <= n; ++j) {
-            prev[j] = j;
+            m_prev[j] = j;
         }
 
         for (int i = 1; i <= m; ++i) {
-            curr[0] = i;
+            m_curr[0] = i;
 
             for (int j = 1; j <= n; ++j) {
                 if (m_s1[i - 1] == m_s2[j - 1]) {
-                    curr[j] = prev[j - 1];
+                    m_curr[j] = m_prev[j - 1];
                 } else {
-                    curr[j] = 1 + std::min(curr[j - 1], prev[j]);
+                    m_curr[j] = 1 + std::min(Insert(i, j), Delete(i, j));
                 }
             }
 
-            std::swap(prev, curr);
+            std::swap(m_prev, m_curr);
         }
 
-        return prev[n];
+        return m_prev[n];
     }
 
-    int Insert(int m, int n) override {
-        return -1;
+    int Insert(const int m, const int n) override {
+        return m_curr[n - 1];
     }
 
-    int Delete(int m, int n) override {
-        return -1;
-    }
-
-    int calculate(int m, int n) override {
-        return calculate_iterative();
-    }
-
-    int calculate_distance() override {
-        return calculate_iterative();
+    int Delete(const int m, const int n) override {
+        return m_prev[n];
     }
 };

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <chrono>
-#include <functional>
 
 #include "EditDistance.hpp"
 
@@ -14,7 +13,7 @@ public:
     };
 
     template <typename T, std::enable_if_t<std::is_base_of_v<EditDistance, T>>* = nullptr>
-    static Result measure(T &algorithm, const std::function<size_t(const T &)> &memory_fn) {
+    static Result measure(T &algorithm) {
         namespace chrono = std::chrono;
 
         Result result{};
@@ -24,7 +23,7 @@ public:
         const auto end = chrono::high_resolution_clock::now();
 
         result.time_ms = chrono::duration_cast<chrono::milliseconds>(end - start).count();
-        result.memory_bytes = memory_fn(algorithm);
+        result.memory_bytes = algorithm.calculate_memory();
 
         return result;
     }

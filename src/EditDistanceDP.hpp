@@ -7,71 +7,51 @@
 #include "EditDistance.hpp"
 
 class EditDistanceDP final : EditDistance {
-    mutable std::vector<std::vector<int>> m_dp;
+    std::vector<std::vector<int>> m_table;
 
 public:
-    EditDistanceDP(const std::string &s1, const std::string &s2): EditDistance(s1, s2) {
-        m_dp.resize(s1.length() + 1, std::vector(s2.length() + 1, -1));
+    EditDistanceDP(const std::string &s1, const std::string &s2)
+        : EditDistance(s1, s2),
+          m_table(s1.length() + 1, std::vector(s2.length() + 1, 0)) {}
+
+    int calculate_distance() override {
+        return calculate(m_s1.length(), m_s2.length());
     }
 
-    int calculate(const int m, const int n) override { // NOLINT(*-no-recursion)
-        if (m_dp[m][n] != -1) {
-            return m_dp[m][n];
+    [[nodiscard]] uint64_t calculate_memory() const override {
+        uint64_t memory = 0;
+
+        for (const auto &row : m_table) {
+            memory += row.size() * sizeof(row[0]);
         }
 
-        if (m == 0) {
-            return m_dp[m][n] = n;
-        }
-        if (n == 0) {
-            return m_dp[m][n] = m;
-        }
-
-        if (m_s1[m - 1] == m_s2[n - 1]) {
-            return m_dp[m][n] = calculate(m - 1, n - 1);
-        }
-
-        const int insert_cost = Insert(m, n);
-        const int delete_cost = Delete(m, n);
-
-        return m_dp[m][n] = 1 + std::min(insert_cost, delete_cost);
+        return memory;
     }
 
-    int Insert(const int m, const int n) override { // NOLINT(*-no-recursion)
-        return calculate(m, n - 1);
-    }
-
-    int Delete(const int m, const int n) override { // NOLINT(*-no-recursion)
-        return calculate(m - 1, n);
-    }
-
-    int calculate_iterative() const {
-        const int m = m_s1.length();
-        const int n = m_s2.length();
-
-        std::vector table(m + 1, std::vector(n + 1, 0));
-
-        for (int i = 0; i <= m; ++i) {
-            for (int j = 0; j <= n; ++j) {
+private:
+    int calculate(const int m, const int n) override {
+        for (int i = 0; i <= m; i++) {
+            for (int j = 0; j <= n; j++) {
                 if (i == 0) {
-                    table[i][j] = j;
+                    m_table[i][j] = j;
                 } else if (j == 0) {
-                    table[i][j] = i;
+                    m_table[i][j] = i;
                 } else if (m_s1[i - 1] == m_s2[j - 1]) {
-                    table[i][j] = table[i - 1][j - 1];
+                    m_table[i][j] = m_table[i - 1][j - 1];
                 } else {
-                    table[i][j] = 1 + std::min(table[i - 1][j], table[i][j - 1]);
+                    m_table[i][j] = 1 + std::min(Insert(i, j), Delete(i, j));
                 }
             }
         }
 
-        return table[m][n];
+        return m_table[m][n];
     }
 
-    int calculate_distance() override {
-        return calculate_iterative();
+    int Insert(const int m, const int n) override {
+        return m_table[m][n - 1];
     }
 
-    int get_dp_size() const {
-        return m_dp.size() * (m_dp.empty() ? 0 : m_dp[0].size());
+    int Delete(const int m, const int n) override {
+        return m_table[m - 1][n];
     }
 };
