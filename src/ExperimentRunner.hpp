@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+#include "EditDistance.hpp"
 #include "EditDistanceDP.hpp"
 #include "EditDistanceDPOptimized.hpp"
 #include "EditDistanceMemo.hpp"
@@ -15,15 +16,17 @@
 
 class ExperimentRunner {
     std::vector<std::string> m_texts;
-    // 4 algorithms * 4 source texts * 4 destination texts
-    std::vector<std::vector<std::vector<PerformanceMeter::Result>>> m_results{
-        4,
-        std::vector(4, std::vector<PerformanceMeter::Result>(4)),
-    };
+    // algorithm -> source text -> destination text
+    std::vector<std::vector<std::vector<PerformanceMeter::Result>>> m_results;
 
 public:
-    ExperimentRunner(const std::string &file_path, const int start_line, const int lines_per_extract)
-        : m_texts(TextExtractor(file_path).extract_multiple_texts(start_line, lines_per_extract, 4)) {}
+    ExperimentRunner(
+        const std::string &file_path,
+        const int start_line,
+        const int lines_per_extract,
+        const int num_extracts
+    ) : m_texts(TextExtractor(file_path).extract_multiple_texts(start_line, lines_per_extract, num_extracts)),
+        m_results(4,std::vector(num_extracts, std::vector<PerformanceMeter::Result>(num_extracts))) {}
 
     void run_all_tests() {
         // run_tests<EditDistanceRecursive>("Recursive", 0);
@@ -35,10 +38,11 @@ public:
 private:
     template <typename T, std::enable_if_t<std::is_base_of_v<EditDistance, T>>* = nullptr>
     void run_tests(const char *name, const int algo_idx) {
-        std::cout << "\n=== Running 12 tests for " << name << " ===" << std::endl;
+        const int n = m_texts.size();
+        std::cout << "\n=== Running " << n * (n - 1) << " tests for " << name << " ===" << std::endl;
 
-        for (int i = 0; i < m_texts.size(); i++) {
-            for (int j = 0; j < m_texts.size(); j++) {
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
                 if (i != j) {
                     run_test<T>(algo_idx, i, j);
                 }
