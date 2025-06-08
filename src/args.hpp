@@ -20,9 +20,9 @@ struct ArgValidationResult {
 struct Arg {
     const std::string name;
     const std::string label;
-    int32_t value = 0;
-    int32_t min = std::numeric_limits<int32_t>::min();
-    int32_t max = std::numeric_limits<int32_t>::max();
+    int64_t value = 0;
+    int64_t min = std::numeric_limits<int64_t>::min();
+    int64_t max = std::numeric_limits<int64_t>::max();
 
     std::function<ArgValidationResult()> validator = []() -> ArgValidationResult {
         return {};
@@ -49,7 +49,7 @@ struct Args {
     Arg upper{
         .name = "-u",
         .label = "upper",
-        .value = 512,
+        .value = 1280,
         .min = 1,
         .validator = [this]() -> ArgValidationResult {
             return {upper > lower, upper.label + " must be > " + lower.label};
@@ -58,7 +58,7 @@ struct Args {
     Arg step{
         .name = "-s",
         .label = "step",
-        .value = 1,
+        .value = 128,
         .min = 1,
     };
     Arg start_pos{
@@ -66,18 +66,6 @@ struct Args {
         .label = "start_pos",
         .value = 0,
         .min = 0,
-    };
-    Arg extract_length{
-        .name = "-el",
-        .label = "extract_length",
-        .value = 4096,
-        .min = 1,
-    };
-    Arg number_extracts{
-        .name = "-ne",
-        .label = "number_extracts",
-        .value = 4,
-        .min = 1,
     };
 
 private:
@@ -88,8 +76,6 @@ private:
         &upper,
         &step,
         &start_pos,
-        &extract_length,
-        &number_extracts,
     };
     const std::unordered_map<std::string, Arg *> m_args_map{
         {runs.name, &runs},
@@ -97,8 +83,6 @@ private:
         {upper.name, &upper},
         {step.name, &step},
         {start_pos.name, &start_pos},
-        {extract_length.name, &extract_length},
-        {number_extracts.name, &number_extracts},
     };
 
 public:
@@ -120,11 +104,11 @@ public:
             ss << "  " << arg->name << "\t: " << arg->label << "\n"
                     << "\t    default: " << arg->value << "\n";
 
-            if (arg->min != std::numeric_limits<int32_t>::min()) {
+            if (arg->min != std::numeric_limits<int64_t>::min()) {
                 ss << "\t    min: " << arg->min << "\n";
             }
 
-            if (arg->max != std::numeric_limits<int32_t>::max()) {
+            if (arg->max != std::numeric_limits<int64_t>::max()) {
                 ss << "\t    max: " << arg->max << "\n";
             }
 
@@ -144,22 +128,18 @@ public:
 };
 
 struct ParsedArgs {
-    int32_t runs;
-    int32_t lower;
-    int32_t upper;
-    int32_t step;
-    int32_t start_pos;
-    int32_t extract_length;
-    int32_t number_extracts;
+    int64_t runs;
+    int64_t lower;
+    int64_t upper;
+    int64_t step;
+    int64_t start_pos;
 
     explicit ParsedArgs(const Args &args):
         runs(args.runs.value),
         lower(args.lower.value),
         upper(args.upper.value),
         step(args.step.value),
-        start_pos(args.start_pos.value),
-        extract_length(args.extract_length.value),
-        number_extracts(args.number_extracts.value) {}
+        start_pos(args.start_pos.value) {}
 };
 
 inline ParsedArgs parse_args(const int argc, const char *const *const argv) {
@@ -185,7 +165,7 @@ inline ParsedArgs parse_args(const int argc, const char *const *const argv) {
         errno = 0;
         char *end;
         const char *string = argv[i + 1];
-        const int32_t parsed_value = std::strtol(string, &end, 10);
+        const int64_t parsed_value = std::strtol(string, &end, 10);
 
         if (string == end || errno == ERANGE) {
             cerr << EXE_NAME << ": " << "invalid option value " << argv[i + 1] << "\n\n"

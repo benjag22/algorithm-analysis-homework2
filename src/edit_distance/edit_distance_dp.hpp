@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include "EditDistance.hpp"
+#include "edit_distance.hpp"
 
 class EditDistanceDP final : EditDistance {
     std::vector<std::vector<int>> m_table;

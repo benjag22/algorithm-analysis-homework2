@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include "EditDistance.hpp"
+#include "edit_distance.hpp"
 
 class EditDistanceDPOptimized final : public EditDistance {
     std::vector<int> m_prev;
