@@ -10,12 +10,12 @@ add_executable(
     algorithm_analysis_homework2
     src/main.cpp
     src/args.hpp
-    src/edit_distance/EditDistance.hpp
-    src/edit_distance/EditDistanceDP.hpp
-    src/edit_distance/EditDistanceDPOptimized.hpp
-    src/edit_distance/EditDistanceMemo.hpp
-    src/edit_distance/EditDistanceRecursive.hpp
+    src/edit_distance/edit_distance.hpp
+    src/edit_distance/edit_distance_dp.hpp
+    src/edit_distance/edit_distance_dp_optimized.hpp
+    src/edit_distance/edit_distance_memo.hpp
+    src/edit_distance/edit_distance_recursive.hpp
     src/uhr/uhr.hpp
     src/uhr/uhr_utils.hpp
-    src/TextExtractor.hpp
+    src/text_extractor.hpp
 )
