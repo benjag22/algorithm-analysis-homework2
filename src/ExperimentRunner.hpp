@@ -1,7 +1,6 @@
 #pragma once
 
 #include <chrono>
-#include <functional>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -10,7 +9,6 @@
 #include "EditDistanceDP.hpp"
 #include "EditDistanceDPOptimized.hpp"
 #include "EditDistanceMemo.hpp"
-#include "EditDistanceRecursive.hpp"
 #include "PerformanceMeter.hpp"
 #include "TextExtractor.hpp"
 
@@ -22,11 +20,11 @@ class ExperimentRunner {
 public:
     ExperimentRunner(
         const std::string &file_path,
-        const int start_line,
-        const int lines_per_extract,
-        const int num_extracts
-    ) : m_texts(TextExtractor(file_path).extract_multiple_texts(start_line, lines_per_extract, num_extracts)),
-        m_results(4,std::vector(num_extracts, std::vector<PerformanceMeter::Result>(num_extracts))) {}
+        const int start_pos,
+        const int extract_length,
+        const int number_extracts
+    ) : m_texts(TextExtractor(file_path).extract_multiple_texts(start_pos, extract_length, number_extracts)),
+        m_results(4, std::vector(number_extracts, std::vector<PerformanceMeter::Result>(number_extracts))) {}
 
     void run_all_tests() {
         // run_tests<EditDistanceRecursive>("Recursive", 0);

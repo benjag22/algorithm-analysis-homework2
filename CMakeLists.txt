@@ -9,6 +9,7 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--stack,10000000")
 add_executable(
     algorithm_analysis_homework2
     src/main.cpp
+    src/args.hpp
     src/EditDistance.hpp
     src/EditDistanceDP.hpp
     src/EditDistanceDPOptimized.hpp

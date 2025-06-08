@@ -1,69 +1,61 @@
 #pragma once
 
+#include <cstdint>
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
 
 class TextExtractor {
-    static constexpr int MAX_LINES = 50'000;
     std::ifstream m_file;
+    uint64_t m_file_size;
 
 public:
     explicit TextExtractor(const std::string &file_path) : m_file(file_path) {
-        if (!m_file.is_open()) {
+        if (!m_file.is_open() || !m_file.good() || m_file.bad() || m_file.fail() || m_file.eof()) {
             std::cerr << "Error: Could not open file: " << file_path << std::endl;
             std::exit(EXIT_FAILURE);
         }
+
+        m_file.seekg(0, std::ios::end);
+        m_file_size = m_file.tellg();
+        m_file.seekg(0, std::ios::beg);
     }
 
     ~TextExtractor() = default;
 
     std::vector<std::string> extract_multiple_texts(
-        const int start_line,
-        const int lines_per_extract,
-        const int num_extracts
+        const int start_pos,
+        const int extract_length,
+        const int number_extracts
     ) {
-        m_file.seekg(0, std::ios::beg);
-        int current_line = 1;
-
-        std::vector<std::string> texts;
-
-        for (int i = 0; i < num_extracts; i++) {
-            const int start = start_line + i * lines_per_extract;
-            const int end = start + lines_per_extract - 1;
-            const std::string &text = extract_lines_from_file(current_line, start, end);
-
-            if (!text.empty()) {
-                texts.push_back(text);
-            }
-        }
-
-        return texts;
-    }
-
-private:
-    std::string extract_lines_from_file(int &current_line, const int start_line, const int end_line) {
-        if (end_line < start_line || start_line <= 0) {
-            std::cerr << "Error: Invalid lines range (" << start_line << "-" << end_line << ")" << std::endl;
+        if (start_pos >= m_file_size) {
+            std::cerr << "error: start pos " << start_pos << " is out of range\n"
+                    << "file size is " << m_file_size << std::endl;
             std::exit(EXIT_FAILURE);
         }
 
-        std::string result;
-        std::string line;
-
-        while (current_line <= end_line && current_line < MAX_LINES && std::getline(m_file, line)) {
-            if (current_line >= start_line) {
-                result += line;
-
-                if (current_line < end_line) {
-                    result += "\n";
-                }
-            }
-
-            current_line++;
+        const uint64_t total_length = start_pos + static_cast<uint64_t>(extract_length) * number_extracts;
+        if (total_length > m_file_size) {
+            std::cerr << "error: total length " << total_length << " is out of range\n"
+                    << "file size is " << m_file_size << std::endl;
+            std::exit(EXIT_FAILURE);
         }
 
-        return result;
+        m_file.seekg(start_pos, std::ios::beg);
+
+        std::vector<std::string> texts(number_extracts);
+
+        for (int i = 0; i < number_extracts; i++) {
+            std::string text;
+
+            for (int j = 0; j < extract_length; j++) {
+                text += static_cast<char>(m_file.get());
+            }
+
+            texts[i] = text;
+        }
+
+        return texts;
     }
 };
