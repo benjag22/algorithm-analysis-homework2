@@ -43,13 +43,13 @@ struct Args {
     Arg lower{
         .name = "-l",
         .label = "lower",
-        .value = 8,
+        .value = 1,
         .min = 1,
     };
     Arg upper{
         .name = "-u",
         .label = "upper",
-        .value = 2048,
+        .value = 1025,
         .min = 1,
         .validator = [this]() -> ArgValidationResult {
             return {upper > lower, upper.label + " must be > " + lower.label};
@@ -133,6 +133,19 @@ struct ParsedArgs {
     int64_t upper;
     int64_t step;
     int64_t start_pos;
+
+    ParsedArgs(
+        const int64_t runs,
+        const int64_t lower,
+        const int64_t upper,
+        const int64_t step,
+        const int64_t start_pos
+    ):
+        runs(runs),
+        lower(lower),
+        upper(upper),
+        step(step),
+        start_pos(start_pos) {}
 
     explicit ParsedArgs(const Args &args):
         runs(args.runs.value),

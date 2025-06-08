@@ -153,20 +153,26 @@ def create_combined_fit_plot(all_fits: list[FitData]) -> None:
     print(f"Combined fit curves plot saved as '{output_path}'")
 
 
+def get_algorithm(filename: str) -> str:
+    parts = filename.split('_')
+
+    if len(parts) >= 3:
+        if parts[1].isdigit():
+            algorithm = parts[0]
+        else:
+            algorithm = '_'.join(parts[:-2])
+    else:
+        algorithm = parts[0] if parts else filename
+
+    return algorithm
+
+
 def group_files_by_algorithm(csv_files: list[Path]) -> dict[str, list[Path]]:
     groups = defaultdict(list)
 
     for file_path in csv_files:
-        filename = file_path.stem
-
-        if filename.startswith("dp_optimized_"):
-            groups["dp_optimized"].append(file_path)
-        elif filename.startswith("dp_"):
-            groups["dp"].append(file_path)
-        elif filename.startswith("memo_"):
-            groups["memo"].append(file_path)
-        else:
-            print(f"Warning: Unknown file pattern for {filename}")
+        algorithm = get_algorithm(file_path.stem)
+        groups[algorithm].append(file_path)
 
     return dict(groups)
 
@@ -201,14 +207,8 @@ def main():
             fit_data = process_csv_file(file_path)
             all_fits.append(fit_data)
 
-            filename = file_path.stem
-            if filename.startswith("dp_optimized_"):
-                grouped_fits["dp_optimized"].append(fit_data)
-            elif filename.startswith("dp_"):
-                grouped_fits["dp"].append(fit_data)
-            elif filename.startswith("memo_"):
-                grouped_fits["memo"].append(fit_data)
-
+            algorithm = get_algorithm(file_path.stem)
+            grouped_fits[algorithm].append(fit_data)
         except Exception as e:
             print(f"Error processing {file_path}: {e}")
 
@@ -216,7 +216,6 @@ def main():
     create_combined_fit_plot(all_fits)
 
     print("Processing complete.")
-
 
 if __name__ == "__main__":
     main()
