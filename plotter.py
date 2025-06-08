@@ -52,6 +52,8 @@ def create_grouped_plots(grouped_fits: dict[str, list[FitData]]) -> None:
         if not fits:
             continue
 
+        display_name = group_name.replace("_", " ").title()
+
         plt.figure(figsize=(21, 7))
 
         x_min = min([min(fit.x) for fit in fits])
@@ -71,7 +73,7 @@ def create_grouped_plots(grouped_fits: dict[str, list[FitData]]) -> None:
                          fmt="o-", capsize=5, color=colors[i % len(colors)],
                          markersize=5, label=extract_label, alpha=0.7)
 
-        plt.title(f"{group_name.upper()} Algorithm - Data Points with Error Bars", fontsize=16)
+        plt.title(f"{display_name} Algorithm - Data Points with Error Bars", fontsize=16)
         plt.xlabel("Number of elements (n)", fontsize=16)
         plt.ylabel("Execution time (ns)", fontsize=16)
         plt.grid(True, linestyle="--", alpha=0.7)
@@ -90,7 +92,7 @@ def create_grouped_plots(grouped_fits: dict[str, list[FitData]]) -> None:
                      color=colors[i % len(colors)],
                      label=f"{extract_label}: {fit_data.equation}")
 
-        plt.title(f"{group_name.upper()} Algorithm - Fit Curves Comparison", fontsize=16)
+        plt.title(f"{display_name} Algorithm - Fit Curves Comparison", fontsize=16)
         plt.xlabel("Number of elements (n)", fontsize=16)
         plt.ylabel("Execution time (ns)", fontsize=16)
         plt.grid(True, linestyle="--", alpha=0.7)
@@ -199,7 +201,6 @@ def main():
             fit_data = process_csv_file(file_path)
             all_fits.append(fit_data)
 
-            # Determine which group this file belongs to
             filename = file_path.stem
             if filename.startswith("dp_optimized_"):
                 grouped_fits["dp_optimized"].append(fit_data)
