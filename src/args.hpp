@@ -49,7 +49,7 @@ struct Args {
     Arg upper{
         .name = "-u",
         .label = "upper",
-        .value = 1280,
+        .value = 2048,
         .min = 1,
         .validator = [this]() -> ArgValidationResult {
             return {upper > lower, upper.label + " must be > " + lower.label};
@@ -58,7 +58,7 @@ struct Args {
     Arg step{
         .name = "-s",
         .label = "step",
-        .value = 128,
+        .value = 64,
         .min = 1,
     };
     Arg start_pos{

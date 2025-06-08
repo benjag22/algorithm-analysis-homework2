@@ -23,7 +23,7 @@ int main(const int argc, const char *const *const argv) {
             TextExtractor &text_extractor1 = text_extractors[i];
             TextExtractor &text_extractor2 = text_extractors[j];
 
-            const std::string suffix = std::to_string(i) + "_" + std::to_string(j) + ".csv";
+            const std::string suffix = std::to_string(i + 1) + "_" + std::to_string(j + 1) + ".csv";
 
             uhr<EditDistanceMemo>(
                 DATA_DIR + "/memo_" + suffix,
