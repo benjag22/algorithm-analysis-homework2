@@ -19,13 +19,8 @@ public:
     }
 
     [[nodiscard]] uint64_t calculate_memory() const override {
-        uint64_t memory = 0;
-
-        for (const auto &row : m_table) {
-            memory += row.size() * sizeof(row[0]);
-        }
-
-        return memory;
+        const uint64_t table_memory = m_table.size() * m_table[0].size() * sizeof(int);
+        return table_memory;
     }
 
 private:
