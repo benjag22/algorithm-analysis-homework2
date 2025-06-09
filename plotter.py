@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 from pandas import DataFrame
 from pandas.core.arrays import ExtensionArray
+from scipy.optimize import curve_fit
 
 type ArrayLike = Union[ExtensionArray, np.ndarray]
 type PlotData = np.ndarray[tuple[int, ...], np.dtype]
@@ -16,6 +17,11 @@ type FitFunc = Callable[[PlotData], PlotData] | np.poly1d
 
 PLOTS_DIR = "plots"
 os.makedirs(PLOTS_DIR, exist_ok=True)
+
+
+def exponential_func(x: PlotData, a: np.float64, b: np.float64, c: np.float64) -> PlotData:
+    """a * b^x + c"""
+    return a * np.power(b, x) + c
 
 
 class FitData:
@@ -30,11 +36,18 @@ class FitData:
             case "memo" | "dp" | "dp_optimized":
                 z = np.polyfit(df["n"], df["t_mean"], 2)
 
-                self.fit_func = np.poly1d(z)
+                self.fit_func: FitFunc = np.poly1d(z)
                 self.equation = f"{z[0]:.4f}n² + {z[1]:.2f}n + {z[2]:.2f}"
 
             case "recursive":
-                print("TODO")
+                initial_guess = [1, 2, 0]
+                bounds = ([0, 1.1, -np.inf], [np.inf, np.inf, np.inf])
+                # noinspection PyTupleAssignmentBalance
+                popt, _ = curve_fit(exponential_func, self.x, self.y, p0=initial_guess, bounds=bounds, maxfev=10000)
+                a, b, c = popt
+                self.fit_func = lambda x: exponential_func(x, a, b, c)
+                sign = "+" if c >= 0 else "-"
+                self.equation = f"{a:.2e} · {b:.2f}ⁿ {sign} {abs(c):.2e}"
 
 
 def get_algorithm(filename: str) -> str:
@@ -190,13 +203,10 @@ def create_combined_fit_plot(grouped_fits: dict[str, list[FitData]]) -> None:
     plt.figure(figsize=(21, 14))
 
     all_fits = list(group_averages.values())
-    x_min = min([min(fit.x) for fit in all_fits])
-    x_max = max([max(fit.x) for fit in all_fits])
-    y_max = max([max(fit.y) for fit in all_fits])
+    y_max = max([max(fit.y) for fit in all_fits if fit.algorithm != "recursive"])
     y_max_with_buffer = y_max * 1.1
-    mem_max = max([max(fit.df["mem"]) for fit in all_fits])
+    mem_max = max([max(fit.df["mem"]) for fit in all_fits if fit.algorithm != "recursive"])
     mem_max_with_buffer = mem_max * 1.1
-    x_combined = np.linspace(x_min, x_max, 200)
 
     # Subplot 1: Data points (top left)
     plt.subplot2grid((4, 4), (0, 0), 2, 2)
@@ -218,8 +228,14 @@ def create_combined_fit_plot(grouped_fits: dict[str, list[FitData]]) -> None:
 
     for fit_data in all_fits:
         algorithm_name = fit_data.algorithm.replace("_", " ").title()
-        y_fit = fit_data.fit_func(x_combined)
-        plt.plot(x_combined, y_fit, linestyle="-", linewidth=3,
+
+        if fit_data.algorithm == "recursive":
+            x_fit = np.linspace(min(fit_data.x), max(fit_data.x) + 2, 100)
+        else:
+            x_fit = np.linspace(min(fit_data.x), max(fit_data.x), 100)
+
+        y_fit = fit_data.fit_func(x_fit)
+        plt.plot(x_fit, y_fit, linestyle="-", linewidth=3,
                  label=f"{algorithm_name}: {fit_data.equation}")
 
     plt.title("Algorithm Performance Comparison - Group Averages (Fit Curves)", fontsize=16)
@@ -294,9 +310,7 @@ def main():
                 get_algorithm(file_path.stem),
             )
 
-            # TODO this one's special c:
-            if fit_data.algorithm != "recursive":
-                grouped_fits[fit_data.algorithm].append(fit_data)
+            grouped_fits[fit_data.algorithm].append(fit_data)
         except Exception as e:
             print(f"Error processing {file_path}: {e}")
 
