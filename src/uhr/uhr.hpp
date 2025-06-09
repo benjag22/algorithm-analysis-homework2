@@ -48,7 +48,7 @@ void uhr(
 
     // File to write time data
     std::ofstream time_data(filePath);
-    time_data << "n,t_mean,t_stdev,t_Q0,t_Q1,t_Q2,t_Q3,t_Q4\n";
+    time_data << "n,t_mean,t_stdev,t_Q0,t_Q1,t_Q2,t_Q3,t_Q4,mem\n";
 
     // Begin testing
     const std::string test_name = std::filesystem::path(filePath).stem().string();
@@ -58,6 +58,7 @@ void uhr(
     for (uint64_t n = lower; n <= upper; n += step) {
         double mean_time = 0;
         double time_stdev = 0;
+        uint64_t memory = 0;
 
         // Test configuration goes here
         const std::string &string1 = text_extractor1.extract(n);
@@ -73,6 +74,10 @@ void uhr(
             // Function to test goes here
             edit_distance.calculate_distance();
             auto end_time = std::chrono::high_resolution_clock::now();
+
+            if (i == 0) {
+                memory = edit_distance.calculate_memory();
+            }
 
             elapsed_time = end_time - begin_time;
             times[i] = elapsed_time.count();
@@ -93,8 +98,15 @@ void uhr(
 
         quartiles(times, q);
 
-        time_data << n << ',' << mean_time << ',' << time_stdev << ',';
-        time_data << q[0] << ',' << q[1] << ',' << q[2] << ',' << q[3] << ',' << q[4] << '\n';
+        time_data << n << ','
+                << mean_time << ','
+                << time_stdev << ','
+                << q[0] << ','
+                << q[1] << ','
+                << q[2] << ','
+                << q[3] << ','
+                << q[4] << ','
+                << memory << '\n';
     }
 
     // This is to keep loading bar after testing

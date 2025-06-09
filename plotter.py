@@ -54,16 +54,18 @@ def create_grouped_plots(grouped_fits: dict[str, list[FitData]]) -> None:
 
         display_name = group_name.replace("_", " ").title()
 
-        plt.figure(figsize=(21, 7))
+        plt.figure(figsize=(21, 14))  # Increased height for 2x2 grid
 
         x_min = min([min(fit.x) for fit in fits])
         x_max = max([max(fit.x) for fit in fits])
         y_max = max([max(fit.y) for fit in fits])
         y_max_with_buffer = y_max * 1.1
+        mem_max = max([max(fit.df["mem"]) for fit in fits])
+        mem_max_with_buffer = mem_max * 1.1
         x_combined = np.linspace(x_min, x_max, 200)
 
-        # Subplot 1: Data points with error bars
-        plt.subplot(1, 2, 1)
+        # Subplot 1: Data points with error bars (top left)
+        plt.subplot2grid((4, 4), (0, 0), 2, 2)
 
         for i, fit_data in enumerate(fits):
             extract_numbers = fit_data.name.split('_')[-2:]
@@ -80,8 +82,8 @@ def create_grouped_plots(grouped_fits: dict[str, list[FitData]]) -> None:
         plt.ylim(0, y_max_with_buffer)
         plt.legend(fontsize=14, loc="best")
 
-        # Subplot 2: Fit curves
-        plt.subplot(1, 2, 2)
+        # Subplot 2: Fit curves (top right)
+        plt.subplot2grid((4, 4), (0, 2), 2, 2)
 
         for i, fit_data in enumerate(fits):
             extract_numbers = fit_data.name.split('_')[-2:]
@@ -99,6 +101,24 @@ def create_grouped_plots(grouped_fits: dict[str, list[FitData]]) -> None:
         plt.ylim(0, y_max_with_buffer)
         plt.legend(fontsize=12, loc="best")
 
+        # Subplot 3: Memory usage (bottom center, spanning 2 columns)
+        plt.subplot2grid((4, 4), (2, 1), 2, 2)
+
+        for i, fit_data in enumerate(fits):
+            extract_numbers = fit_data.name.split('_')[-2:]
+            extract_label = f"Extracts {extract_numbers[0]}-{extract_numbers[1]}"
+
+            plt.plot(fit_data.df["n"], fit_data.df["mem"], "o-",
+                     color=colors[i % len(colors)], markersize=5,
+                     label=extract_label, alpha=0.7)
+
+        plt.title(f"{display_name} Algorithm - Memory Usage", fontsize=16)
+        plt.xlabel("Number of elements (n)", fontsize=16)
+        plt.ylabel("Memory usage (bytes)", fontsize=16)
+        plt.grid(True, linestyle="--", alpha=0.7)
+        plt.ylim(0, mem_max_with_buffer)
+        plt.legend(fontsize=14, loc="best")
+
         plt.tight_layout(w_pad=2, h_pad=2)
 
         output_path = os.path.join(PLOTS_DIR, f"{group_name}_grouped_analysis.png")
@@ -109,18 +129,18 @@ def create_grouped_plots(grouped_fits: dict[str, list[FitData]]) -> None:
 
 
 def create_combined_fit_plot(all_fits: list[FitData]) -> None:
-    plt.figure(figsize=(21, 7))
+    plt.figure(figsize=(21, 14))  # Increased height for 2x2 grid
 
     x_min = min([min(fit.x) for fit in all_fits])
     x_max = max([max(fit.x) for fit in all_fits])
-
     y_max = max([max(fit.y) for fit in all_fits])
-
     y_max_with_buffer = y_max * 1.1
-
+    mem_max = max([max(fit.df["mem"]) for fit in all_fits])
+    mem_max_with_buffer = mem_max * 1.1
     x_combined = np.linspace(x_min, x_max, 200)
 
-    plt.subplot(1, 2, 1)
+    # Subplot 1: Data points (top left)
+    plt.subplot2grid((4, 4), (0, 0), 2, 2)
 
     for fit_data in all_fits:
         plt.scatter(fit_data.x, fit_data.y, s=50, alpha=0.4, label=fit_data.name)
@@ -130,9 +150,10 @@ def create_combined_fit_plot(all_fits: list[FitData]) -> None:
     plt.ylabel("Execution time (ns)", fontsize=16)
     plt.grid(True, linestyle="--", alpha=0.7)
     plt.ylim(0, y_max_with_buffer)
-    plt.legend(fontsize=16, loc="best")
+    plt.legend(fontsize=12, loc="best")
 
-    plt.subplot(1, 2, 2)
+    # Subplot 2: Fit curves (top right)
+    plt.subplot2grid((4, 4), (0, 2), 2, 2)
 
     for fit_data in all_fits:
         y_fit = fit_data.fit_func(x_combined)
@@ -143,7 +164,21 @@ def create_combined_fit_plot(all_fits: list[FitData]) -> None:
     plt.ylabel("Execution time (ns)", fontsize=16)
     plt.grid(True, linestyle="--", alpha=0.7)
     plt.ylim(0, y_max_with_buffer)
-    plt.legend(fontsize=16, loc="best")
+    plt.legend(fontsize=12, loc="best")
+
+    # Subplot 3: Memory usage (bottom center, spanning 2 columns)
+    plt.subplot2grid((4, 4), (2, 1), 2, 2)
+
+    for fit_data in all_fits:
+        plt.plot(fit_data.df["n"], fit_data.df["mem"], "o-",
+                 markersize=3, label=fit_data.name, alpha=0.7)
+
+    plt.title("Comparison of algorithm memory usage", fontsize=16)
+    plt.xlabel("Number of elements (n)", fontsize=16)
+    plt.ylabel("Memory usage (bytes)", fontsize=16)
+    plt.grid(True, linestyle="--", alpha=0.7)
+    plt.ylim(0, mem_max_with_buffer)
+    plt.legend(fontsize=12, loc="best")
 
     output_path = os.path.join(PLOTS_DIR, "combined_fit_curves.png")
     plt.tight_layout(w_pad=2, h_pad=2)
