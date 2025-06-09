@@ -19,29 +19,36 @@ os.makedirs(PLOTS_DIR, exist_ok=True)
 
 
 class FitData:
-    def __init__(self, df: DataFrame, name: str, type_str: str, fit_func: FitFunc, equation: str):
+    def __init__(self, df: DataFrame, name: str, algorithm: str):
         self.df = df
         self.name = name
+        self.algorithm = algorithm
         self.x = df["n"].values
         self.y = df["t_mean"].values
-        self.x_trend = np.linspace(df["n"].min(), df["n"].max(), 100)
-        self.type = type_str
-        self.fit_func = fit_func
-        self.equation = equation
+
+        match algorithm:
+            case "memo" | "dp" | "dp_optimized":
+                z = np.polyfit(df["n"], df["t_mean"], 2)
+
+                self.fit_func = np.poly1d(z)
+                self.equation = f"{z[0]:.4f}n² + {z[1]:.2f}n + {z[2]:.2f}"
+
+            case "recursive":
+                print("TODO")
 
 
-def process_csv_file(file_path: Path) -> FitData:
-    base_filename = os.path.splitext(os.path.basename(file_path))[0]
-    df = pd.read_csv(file_path)
-    z = np.polyfit(df["n"], df["t_mean"], 2)
+def get_algorithm(filename: str) -> str:
+    parts = filename.split("_")
 
-    return FitData(
-        df,
-        base_filename,
-        "polynomial fit",
-        np.poly1d(z),
-        f"{z[0]:.4f}n² + {z[1]:.2f}n + {z[2]:.2f}",
-    )
+    if len(parts) >= 3:
+        if parts[1].isdigit():
+            algorithm = parts[0]
+        else:
+            algorithm = "_".join(parts[:-2])
+    else:
+        algorithm = parts[0] if parts else filename
+
+    return algorithm
 
 
 def create_grouped_plots(grouped_fits: dict[str, list[FitData]]) -> None:
@@ -68,7 +75,7 @@ def create_grouped_plots(grouped_fits: dict[str, list[FitData]]) -> None:
         plt.subplot2grid((4, 4), (0, 0), 2, 2)
 
         for i, fit_data in enumerate(fits):
-            extract_numbers = fit_data.name.split('_')[-2:]
+            extract_numbers = fit_data.name.split("_")[-2:]
             extract_label = f"Extracts {extract_numbers[0]}-{extract_numbers[1]}"
 
             plt.errorbar(fit_data.df["n"], fit_data.df["t_mean"], yerr=fit_data.df["t_stdev"],
@@ -86,7 +93,7 @@ def create_grouped_plots(grouped_fits: dict[str, list[FitData]]) -> None:
         plt.subplot2grid((4, 4), (0, 2), 2, 2)
 
         for i, fit_data in enumerate(fits):
-            extract_numbers = fit_data.name.split('_')[-2:]
+            extract_numbers = fit_data.name.split("_")[-2:]
             extract_label = f"Extracts {extract_numbers[0]}-{extract_numbers[1]}"
 
             y_fit = fit_data.fit_func(x_combined)
@@ -105,7 +112,7 @@ def create_grouped_plots(grouped_fits: dict[str, list[FitData]]) -> None:
         plt.subplot2grid((4, 4), (2, 1), 2, 2)
 
         for i, fit_data in enumerate(fits):
-            extract_numbers = fit_data.name.split('_')[-2:]
+            extract_numbers = fit_data.name.split("_")[-2:]
             extract_label = f"Extracts {extract_numbers[0]}-{extract_numbers[1]}"
 
             plt.plot(fit_data.df["n"], fit_data.df["mem"], "o-",
@@ -131,7 +138,7 @@ def create_grouped_plots(grouped_fits: dict[str, list[FitData]]) -> None:
 def calculate_group_averages(grouped_fits: dict[str, list[FitData]]) -> dict[str, FitData]:
     group_averages = {}
 
-    for group_name, fits in grouped_fits.items():
+    for algorithm, fits in grouped_fits.items():
         if not fits:
             continue
 
@@ -155,7 +162,7 @@ def calculate_group_averages(grouped_fits: dict[str, list[FitData]]) -> dict[str
                 avg_data.append({
                     "n": n,
                     "t_mean": np.mean(t_means),
-                    "t_stdev": np.sqrt(np.mean(np.array(t_stdevs)**2)),
+                    "t_stdev": np.sqrt(np.mean(np.array(t_stdevs) ** 2)),
                     "mem": np.mean(mems)
                 })
 
@@ -163,14 +170,11 @@ def calculate_group_averages(grouped_fits: dict[str, list[FitData]]) -> dict[str
             continue
 
         avg_df = pd.DataFrame(avg_data)
-        z = np.polyfit(avg_df["n"], avg_df["t_mean"], 2)
 
-        group_averages[group_name] = FitData(
+        group_averages[algorithm] = FitData(
             avg_df,
-            f"{group_name}_average",
-            "polynomial fit (group average)",
-            np.poly1d(z),
-            f"{z[0]:.4f}n² + {z[1]:.2f}n + {z[2]:.2f}"
+            f"{algorithm}_average",
+            algorithm,
         )
 
     return group_averages
@@ -198,7 +202,7 @@ def create_combined_fit_plot(grouped_fits: dict[str, list[FitData]]) -> None:
     plt.subplot2grid((4, 4), (0, 0), 2, 2)
 
     for fit_data in all_fits:
-        algorithm_name = fit_data.name.replace("_average", "").replace("_", " ").title()
+        algorithm_name = fit_data.algorithm.replace("_", " ").title()
         plt.errorbar(fit_data.x, fit_data.y, yerr=fit_data.df["t_stdev"],
                      fmt="o-", capsize=5, markersize=6, label=algorithm_name, alpha=0.8)
 
@@ -213,7 +217,7 @@ def create_combined_fit_plot(grouped_fits: dict[str, list[FitData]]) -> None:
     plt.subplot2grid((4, 4), (0, 2), 2, 2)
 
     for fit_data in all_fits:
-        algorithm_name = fit_data.name.replace("_average", "").replace("_", " ").title()
+        algorithm_name = fit_data.algorithm.replace("_", " ").title()
         y_fit = fit_data.fit_func(x_combined)
         plt.plot(x_combined, y_fit, linestyle="-", linewidth=3,
                  label=f"{algorithm_name}: {fit_data.equation}")
@@ -246,20 +250,6 @@ def create_combined_fit_plot(grouped_fits: dict[str, list[FitData]]) -> None:
     plt.close()
 
     print(f"Combined group averages plot saved as '{output_path}'")
-
-
-def get_algorithm(filename: str) -> str:
-    parts = filename.split('_')
-
-    if len(parts) >= 3:
-        if parts[1].isdigit():
-            algorithm = parts[0]
-        else:
-            algorithm = '_'.join(parts[:-2])
-    else:
-        algorithm = parts[0] if parts else filename
-
-    return algorithm
 
 
 def group_files_by_algorithm(csv_files: list[Path]) -> dict[str, list[Path]]:
@@ -298,13 +288,15 @@ def main():
     for file_path in csv_files:
         try:
             print(f"Processing {file_path}...")
-            fit_data = process_csv_file(file_path)
-
-            algorithm = get_algorithm(file_path.stem)
+            fit_data = FitData(
+                pd.read_csv(file_path),
+                os.path.splitext(os.path.basename(file_path))[0],
+                get_algorithm(file_path.stem),
+            )
 
             # TODO this one's special c:
-            if algorithm != "recursive":
-                grouped_fits[algorithm].append(fit_data)
+            if fit_data.algorithm != "recursive":
+                grouped_fits[fit_data.algorithm].append(fit_data)
         except Exception as e:
             print(f"Error processing {file_path}: {e}")
 
@@ -312,6 +304,7 @@ def main():
     create_combined_fit_plot(grouped_fits)
 
     print("Processing complete.")
+
 
 if __name__ == "__main__":
     main()
