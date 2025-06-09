@@ -64,7 +64,7 @@ struct Args {
     Arg start_pos{
         .name = "-sp",
         .label = "start_pos",
-        .value = 0,
+        .value = 2048,
         .min = 0,
     };
 

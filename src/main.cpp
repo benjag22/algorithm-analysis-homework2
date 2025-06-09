@@ -37,7 +37,7 @@ void run_uhr(
 
 int main(const int argc, const char *const *const argv) {
     const ParsedArgs &args = parse_args(argc, argv);
-    const ParsedArgs recursive_args = {args.runs, 1, 32, 1, args.start_pos};
+    const ParsedArgs recursive_args = {args.runs, 1, 14, 1, args.start_pos};
 
     std::vector<TextExtractor> text_extractors;
     text_extractors.emplace_back(DATA_DIR + "/extract_1.txt", args.start_pos);
